@@ -12,11 +12,15 @@ public class VideoPlayer {
   private final VideoLibrary videoLibrary;
   private List<Video> allVideos;
   private List<VideoPlaylist> allPlaylists;
+  private boolean isPlaying;
+  private Video playingVideo;
 
   public VideoPlayer() {
     this.videoLibrary = new VideoLibrary();
     allVideos = videoLibrary.getVideos();
     allPlaylists = new ArrayList<>();
+    isPlaying = false;
+    playingVideo = null;
   }
 
   public void numberOfVideos() {
@@ -37,12 +41,12 @@ public class VideoPlayer {
       
       if(toBePlayed != null){
         if(toBePlayed.isItFlagged() == false){
-          for(int i = 0; i<allVideos.size(); i++){
-            if(allVideos.get(i).isItPlaying() == true){
-              allVideos.get(i).stopPlaying();
-            }
+          if(playingVideo != null){
+            stopVideo();
           }
-        toBePlayed.startPlaying();
+          isPlaying = true;
+          playingVideo = toBePlayed;
+          System.out.println("Playing video: " + toBePlayed.getTitle());
         }
         else{
           System.out.println("Cannot play video: Video is currently flagged (reason: " + toBePlayed.returnFlagReason() + ")");
@@ -54,20 +58,19 @@ public class VideoPlayer {
   }
 
   public void stopVideo() {
-    int videosPlaying = 0;
-    for(int i = 0; i<allVideos.size(); i++){
-      if(allVideos.get(i).isItPlaying() == true){
-        allVideos.get(i).stopPlaying();
-        videosPlaying++;
-      }
+    if(playingVideo != null){
+      isPlaying = false;
+      System.out.println("Stopping video: " + playingVideo.getTitle());
+      playingVideo = null;
     }
-    if(videosPlaying == 0){
+    else if(playingVideo == null){
       System.out.println("Cannot stop video: No video is currently playing");
     }
   }
 
   public void playRandomVideo() {
      Random random = new Random();
+     
      try{
       Video randomVideo = allVideos.get(random.nextInt(allVideos.size()));
       
@@ -75,13 +78,10 @@ public class VideoPlayer {
         while(randomVideo.isItFlagged() == true){
           randomVideo = allVideos.get(random.nextInt(allVideos.size()));
         }
-
-        for(int i = 0; i<allVideos.size(); i++){
-          if(allVideos.get(i).isItPlaying() == true){
-            allVideos.get(i).stopPlaying();
-          }
+        if(playingVideo != null){
+          stopVideo();
         }
-        randomVideo.startPlaying();
+        playVideo(randomVideo.getVideoId());
       }
       else{
         System.out.println("No videos available");
@@ -94,50 +94,47 @@ public class VideoPlayer {
   }
 
   public void pauseVideo() {
-    int videosPlaying = 0;
-    for(int i = 0; i<allVideos.size(); i++){
-      if(allVideos.get(i).isItPlaying() == true){
-        allVideos.get(i).pauseVid();
-        videosPlaying++;
+    if(playingVideo != null){
+      if(isPlaying == true){
+        System.out.println("Pausing video: " + playingVideo.getTitle());
+        isPlaying = false;
+      }
+      else{
+        System.out.println("Video already paused: " + playingVideo.getTitle());
       }
     }
-    if(videosPlaying == 0){
+    if(playingVideo == null){
       System.out.println("Cannot pause video: No video is currently playing");
     }
 
   }
 
   public void continueVideo() {
-    int videosPlaying = 0;
-    for(int i = 0; i<allVideos.size(); i++){
-      if(allVideos.get(i).isItPaused() == true){
-        allVideos.get(i).continueVid();
-        videosPlaying++;
-      }
-      else if(allVideos.get(i).isItPlaying() == true & allVideos.get(i).isItPaused() == false){
-        System.out.println("Cannot continue video: Video is not paused");
-        videosPlaying++;
-      }  
+    if(playingVideo != null){
+       if(isPlaying == false){
+         System.out.println("Continuing video: " + playingVideo.getTitle());
+       }
+       else{
+         System.out.println("Cannot continue video: Video is not paused");
+       }
     }
-    if(videosPlaying == 0){
-        System.out.println("Cannot continue video: No video is currently playing");
+    else if(playingVideo == null){
+      System.out.println("Cannot continue video: No video is currently playing");
     }
-  }
+  } 
 
   public void showPlaying() {
-    int videosPlaying = 0;
-    for(int i = 0; i<allVideos.size(); i++){
-      if(allVideos.get(i).isItPlaying() == true){
-        String tagString = getTagsAsString(allVideos.get(i).getTags());
-        System.out.print("Currently playing: " + allVideos.get(i).getTitle() + " (" + allVideos.get(i).getVideoId() + ") [" + tagString +"]");
-        if(allVideos.get(i).isItPaused() == true){
+    if(playingVideo != null){
+        String tagString = getTagsAsString(playingVideo.getTags());
+        System.out.print("Currently playing: " + playingVideo.getTitle() + " (" + playingVideo.getVideoId() + ") [" + tagString +"]");
+        if(isPlaying == false){
           System.out.print(" - PAUSED");
         }
         System.out.print("\n");
-        videosPlaying++;
+        
       }
-    }
-    if(videosPlaying == 0){
+    
+    if(playingVideo == null){
       System.out.println("No video is currently playing");
     }
   }
@@ -369,6 +366,11 @@ public class VideoPlayer {
     if(v != null){
       if(v.isItFlagged() == false){
         v.flagVideo("Not supplied");
+        if(playingVideo != null){
+          if(playingVideo.getTitle().equals(v.getTitle())){
+           stopVideo();
+          }
+        }
         System.out.println("Successfully flagged video: " + v.getTitle() + " (reason: Not supplied)");
       }
       else{
@@ -385,6 +387,11 @@ public class VideoPlayer {
     if(v != null){
       if(v.isItFlagged() == false){
         v.flagVideo(reason);
+        if(playingVideo != null){
+          if(playingVideo.getTitle().equals(v.getTitle())){
+            stopVideo();
+          }
+        }
         System.out.println("Successfully flagged video: " + v.getTitle() + " (reason: " + reason +")");
       }
       else{
