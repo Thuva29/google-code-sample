@@ -9,8 +9,6 @@ class Video {
   private final String title;
   private final String videoId;
   private final List<String> tags;
-  private boolean playing = false;
-  private boolean paused = false;
   private boolean flagged = false;
   private String reasonForFlag = "";
 
@@ -35,44 +33,7 @@ class Video {
     return tags;
   }
 
-  public boolean isItPlaying(){
-    return playing;
-  }
-
-  public void startPlaying(){
-    playing = true;
-    System.out.println("Playing video: " + this.getTitle());
-  }
-
-  public void stopPlaying(){
-    System.out.println("Stopping video: " + this.getTitle());
-    playing = false;
-    paused = false;
-  } 
-
-  public void pauseVid(){
-    if(this.isItPaused() == false){
-      System.out.println("Pausing video: " + this.getTitle());
-      paused = true;
-    }
-    else{
-      System.out.println("Video already paused: " + this.getTitle());
-    }
-  }
-
-  public void continueVid(){
-    System.out.println("Continuing video: " + this.getTitle());
-    paused = false;
-  }
-
-  public boolean isItPaused(){
-    return paused;
-  }
-
   public void flagVideo(String reason){
-    if(this.playing == true){
-      stopPlaying();
-    }
     flagged = true;
     reasonForFlag = reason;
   }
@@ -89,3 +50,4 @@ class Video {
     return reasonForFlag;
   }
 }
+
